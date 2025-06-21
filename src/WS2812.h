@@ -1,9 +1,18 @@
-#pragma once
-#include <Arduino.h>
+#ifndef WS2812_H
+#define WS2812_H
 
-void InitLedRGY();  // hàm khởi tạo Led RGY
-void ColorGreen();  // hàm gọi màu xanh lá
-void ColorRed();    // hàm gọi màu xanh đỏ
-void ColorYellow(); // hàm gọi màu xanh vàng
-void ShowColor();   // hàm gọi màu hiển thị
-void ColorOff();    // hàm gọi màu tắt
+#include <Adafruit_NeoPixel.h>
+
+#define NUM_LEDS  256
+#define WS2801_Pin 2
+
+extern Adafruit_NeoPixel strip;  // <-- Cho phép main.cpp truy cập strip
+
+void InitLedRGY();
+void ColorGreen();
+void ColorRed();
+void ColorYellow();
+void ShowColor();
+void ColorOff();
+
+#endif

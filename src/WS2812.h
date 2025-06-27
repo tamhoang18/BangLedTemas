@@ -1,6 +1,4 @@
-#ifndef WS2812_H
-#define WS2812_H
-
+#pragma once
 #include <Adafruit_NeoPixel.h>
 
 #define NUM_LEDS  256
@@ -8,11 +6,10 @@
 
 extern Adafruit_NeoPixel strip;  // <-- Cho phép main.cpp truy cập strip
 
-void InitLedRGY();
+void Init_LedRGY();
 void ColorGreen();
 void ColorRed();
 void ColorYellow();
 void ShowColor();
 void ColorOff();
 
-#endif

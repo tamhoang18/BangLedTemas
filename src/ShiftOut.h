@@ -14,5 +14,5 @@ void updateDisplayData(float temp, float humi, DateTime now, bool blink);
 void displayValueAtPosition(int position, int value);
 void blinkOtherPositions(int fixedPosition, bool on);
 extern const byte PositionLEDs[6][4];
-void InitShiftOut();
+void Init_ShiftOut();
 void clearOtherPositions(int fixedPosition);

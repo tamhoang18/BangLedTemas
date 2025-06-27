@@ -17,7 +17,7 @@ const byte Digit_To_7Seg[] = {
     0b01000000  // -
 };
 
-void InitShiftOut()
+void Init_ShiftOut()
 {
     pinMode(Data_ShiftOurt, OUTPUT);
     pinMode(Clock_ShiftOut, OUTPUT);
@@ -76,8 +76,8 @@ void displayValueAtPosition(int position, int value)
         byte d3 = value % 10;
 
         Led_Data[leds[0]] = ~Digit_To_7Seg[d1];
-        Led_Data[leds[1]] = ~(Digit_To_7Seg[d2] | 0x80);
-        Led_Data[leds[2]] = ~Digit_To_7Seg[d3]; // DP tại số cuối
+        Led_Data[leds[1]] = ~(Digit_To_7Seg[d2] | 0x80); // 0b01000000
+        Led_Data[leds[2]] = ~Digit_To_7Seg[d3];          // DP tại số cuối
         break;
     }
 
@@ -100,7 +100,7 @@ void displayValueAtPosition(int position, int value)
     default:
         break;
     }
-    // 👉 Thêm dấu trang trí hoặc dấu trừ cố định
+    // Thêm dấu trang trí hoặc dấu trừ cố định
     Led_Data[6] = ~Digit_To_7Seg[11];
     Led_Data[16] = ~Digit_To_7Seg[11];
     Led_Data[34] = Digit_To_7Seg[11];

@@ -1,5 +1,5 @@
 #pragma once
 #include <RTClib.h>
 
-void InitRTC();
+void Init_RTC();
 DateTime getTime();

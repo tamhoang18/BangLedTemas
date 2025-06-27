@@ -3,8 +3,7 @@
 
 RTC_DS3231 rtc;
 
-void InitRTC() {
-    Wire.begin();
+void Init_RTC() {
     rtc.begin();
     if (rtc.lostPower()) {
         rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));

@@ -1,5 +1,4 @@
-#ifndef IR_HANDLER_H
-#define IR_HANDLER_H
+#pragma once
 
 #include <Arduino.h>
 #include <IRremoteESP8266.h>
@@ -21,9 +20,8 @@ extern MenuState currentMenu;
 extern int currentPosition;
 extern int values[6];
 
-void setupIR();
+void Init_IR();
 void handleIR();
 void printValues();
 void startBeep();
 void updateBeep();
-#endif

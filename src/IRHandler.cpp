@@ -6,29 +6,22 @@ IRrecv irrecv(IR_RECEIVE_PIN);
 decode_results results;
 int btn3Count = 0;
 unsigned long btn3LastTime = 0;
-
 int btn4Count = 0;
 unsigned long btn4LastTime = 0;
+
 MenuState currentMenu = MENU_IDLE;
 int currentPosition = 0;
 int values[6] = {0, 0, 0, 0, 0, 0};
 
 int getStepAmount(int count)
 {
-  if (count >= 35) 
-    return 50;
-  else if (count >= 30) 
-    return 25;
-  else if (count >= 25) 
-    return 20;
-  else if (count >= 20) 
-    return 15;
-  else if (count >= 15) 
-    return 10;
-  else if (count >= 10) 
-    return 5;
-  else
-    return 1;
+  if (count >= 35) return 50;
+  else if (count >= 30) return 25;
+  else if (count >= 25) return 20;
+  else if (count >= 20) return 15;
+  else if (count >= 15) return 10;
+  else if (count >= 10) return 5;
+  else return 1;
 }
 
 const String DS_Nut_Nhan[NUM_BUTTONS] = {
@@ -43,40 +36,11 @@ const String DS_Nut_Nhan[NUM_BUTTONS] = {
 unsigned long lastPressTime = 0;
 int pressCount = 0;
 
-// Biến xử lý giữ nút
-bool holdActive = false;
-int holdButton = -1;
-unsigned long holdStartTime = 0;
-unsigned long lastChangeTime = 0;
-
 // Lọc mã lặp
 String Sau_Khi_Doc_Code = "";
 unsigned long lastIRTime = 0;
 
-String hexToString(uint64_t code)
-{
-  char buf[9];
-  sprintf(buf, "%08lX", (uint32_t)(code & 0xFFFFFFFF));
-  return String(buf);
-}
-
-void setupIR()
-{
-  irrecv.enableIRIn();
-  pinMode(BUZZER_PIN, OUTPUT);
-  digitalWrite(BUZZER_PIN, LOW); // Tắt còi ban đầu
-}
-
-void printValues()
-{
-  Serial.println("------ GIÁ TRỊ HIỆN TẠI ------");
-  for (int i = 0; i < 6; i++)
-  {
-    Serial.printf("Vị trí %d: %02d\n", i + 1, values[i]);
-  }
-  Serial.println("------------------------------");
-}
-
+// Buzzer
 bool isBeeping = false;
 unsigned long beepStartTime = 0;
 const int beepDuration = 50;
@@ -96,6 +60,31 @@ void updateBeep()
     isBeeping = false;
   }
 }
+
+String hexToString(uint64_t code)
+{
+  char buf[9];
+  sprintf(buf, "%08lX", (uint32_t)(code & 0xFFFFFFFF));
+  return String(buf);
+}
+
+void Init_IR()
+{
+  irrecv.enableIRIn();
+  pinMode(BUZZER_PIN, OUTPUT);
+  digitalWrite(BUZZER_PIN, LOW);
+}
+
+void printValues()
+{
+  Serial.println("------ GIÁ TRỊ HIỆN TẠI ------");
+  for (int i = 0; i < 6; i++)
+  {
+    Serial.printf("Vị trí %d: %02d\n", i + 1, values[i]);
+  }
+  Serial.println("------------------------------");
+}
+
 void handleIR()
 {
   if (irrecv.decode(&results))
@@ -103,9 +92,8 @@ void handleIR()
     String Bien_Doc_Code = hexToString(results.value);
     unsigned long now = millis();
 
-    // Bỏ qua mã lặp nếu giống và trong 300ms
-    if (Bien_Doc_Code == Sau_Khi_Doc_Code && (now - lastIRTime < 50))
-    {
+    // Lọc mã lặp IR: nếu giống mã trước và trong 200ms thì bỏ qua
+    if (Bien_Doc_Code == Sau_Khi_Doc_Code && (now - lastIRTime < 200)) {
       irrecv.resume();
       return;
     }
@@ -114,7 +102,7 @@ void handleIR()
 
     Serial.print("Mã IR nhận được: ");
     Serial.println(Bien_Doc_Code);
-    startBeep(); // Bắt đầu bíp khi nhận mã IR
+    startBeep();
 
     for (int i = 0; i < NUM_BUTTONS; i++)
     {
@@ -133,20 +121,18 @@ void handleIR()
           {
             if (currentMenu == MENU_IDLE)
             {
-              currentMenu = MENU_SELECT_POSITION; // Vào trực tiếp chế độ chỉnh sửa
-              currentPosition = 0;                // Mặc định vị trí 1
+              currentMenu = MENU_SELECT_POSITION;
+              currentPosition = 0;
               Serial.println(">>> ĐÃ VÀO MENU (SELECT_POSITION) <<<");
             }
             else
             {
-              handleExitMenu(); // Thay vì gán trực tiếp currentMenu
+              handleExitMenu();
               Serial.println(">>> THOÁT MENU <<<");
             }
-
             pressCount = 0;
-            printValues(); // Hiển thị giá trị để debug
+            printValues();
           }
-          holdActive = false;
           break;
 
         case 1: // Nút 1 → Chọn vị trí tăng
@@ -156,7 +142,6 @@ void handleIR()
             currentPosition = (currentPosition + 1) % 6;
             Serial.printf("Chọn vị trí tăng: %d\n", currentPosition + 1);
           }
-          holdActive = false;
           break;
 
         case 2: // Nút 2 → Chọn vị trí giảm
@@ -166,14 +151,11 @@ void handleIR()
             currentPosition = (currentPosition - 1 + 6) % 6;
             Serial.printf("Chọn vị trí giảm: %d\n", currentPosition + 1);
           }
-          holdActive = false;
           break;
 
         case 3: // Nút 3 → tăng giá trị
           if (currentMenu == MENU_SELECT_POSITION)
           {
-            unsigned long now = millis();
-
             if (now - btn3LastTime > 500)
               btn3Count = 0;
             btn3Count++;
@@ -184,9 +166,9 @@ void handleIR()
             values[currentPosition] += delta;
 
             if (currentPosition <= 3)
-              values[currentPosition] = constrain(values[currentPosition], 000, 999);
+              values[currentPosition] = constrain(values[currentPosition], 0, 999);
             else
-              values[currentPosition] = constrain(values[currentPosition], 0000, 9999);
+              values[currentPosition] = constrain(values[currentPosition], 0, 9999);
 
             Serial.printf("Nút 3 [+%d] → vị trí %d = %d (nhấn %d lần)\n",
                           delta, currentPosition + 1, values[currentPosition], btn3Count);
@@ -195,15 +177,13 @@ void handleIR()
         case 4: // Nút 4 → giảm giá trị
           if (currentMenu == MENU_SELECT_POSITION)
           {
-            unsigned long now = millis();
-
-            if (now - btn4LastTime > 500) // Reset đếm nếu quá 500ms
+            if (now - btn4LastTime > 500)
               btn4Count = 0;
             btn4Count++;
             btn4LastTime = now;
             btn3Count = 0;
 
-            int delta = getStepAmount(btn4Count); // Lấy số bước dựa trên số lần nhấn
+            int delta = getStepAmount(btn4Count);
             values[currentPosition] -= delta;
 
             if (currentPosition <= 3)

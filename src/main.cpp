@@ -101,18 +101,33 @@ void checkEnvironmentWarning(float temp, float humi)
   if (minHumi > maxHumi)
     swap(minHumi, maxHumi);
 
-  float thres = 1.0;
-  if (temp < minTemp || temp > maxTemp)
-    level = ((temp >= minTemp - thres && temp < minTemp) ||
-             (temp <= maxTemp + thres && temp > maxTemp))
-                ? WARNING_YELLOW
-                : WARNING_RED;
+  // Kiểm tra nhiệt độ và độ ẩm trong ngưỡng cho phép
+  bool temp_in_range = (temp >= minTemp && temp <= maxTemp);
+  bool humi_in_range = (humi >= minHumi && humi <= maxHumi);
 
-  if (humi < minHumi || humi > maxHumi)
-    level = max(level, ((humi >= minHumi - thres && humi < minHumi) ||
-                        (humi <= maxHumi + thres && humi > maxHumi))
-                           ? WARNING_YELLOW
-                           : WARNING_RED);
+  float humi_error = 0.0;
+
+  // Nếu độ ẩm nằm ngoài ngưỡng thì tính tỉ lệ sai số
+  if (humi < minHumi)
+    humi_error = (minHumi - humi) / minHumi * 100.0;
+  else if (humi > maxHumi)
+    humi_error = (humi - maxHumi) / maxHumi * 100.0;
+  else
+    humi_error = 0.0;
+
+  if (temp_in_range && humi_in_range)
+  {
+    level = NORMAL; // Xanh lá
+  }
+  else
+  {
+    if (humi_error > 5.0)
+      level = WARNING_RED; // Đèn đỏ
+    else if (humi_error >= 1.0)
+      level = WARNING_YELLOW; // Đèn vàng
+    else
+      level = WARNING_RED; // Ngoài vùng (nhưng sai số nhỏ hơn 1%) vẫn báo đỏ
+  }
 
   if (level != lastLevel)
   {
